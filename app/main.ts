@@ -7,8 +7,13 @@ console.log("Logs from your program will appear here!");
 const server = net.createServer((socket) => {
   socket.on("data", (data) => {
     const request = data.toString();
-    const requestLine = request.split("\r\n")[0];
+    const requestLines = request.split("\r\n");
+    const requestLine = requestLines[0];
     const [method, url] = requestLine.split(" ");
+
+    const userAgentHeader = requestLines.find((line) =>
+      line.startsWith("User-Agent:")
+    );
 
     if (method === "GET") {
       if (url === "/") socket.write(Buffer.from("HTTP/1.1 200 OK\r\n\r\n"));
@@ -17,6 +22,13 @@ const server = net.createServer((socket) => {
         socket.write(
           Buffer.from(
             `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${query.length}\r\n\r\n${query}`
+          )
+        );
+      } else if (url === "/user-agent" && userAgentHeader) {
+        const userAgent = userAgentHeader.split(": ")[1];
+        socket.write(
+          Buffer.from(
+            `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${userAgent.length}\r\n\r\n${userAgent}`
           )
         );
       } else socket.write(Buffer.from("HTTP/1.1 404 Not Found\r\n\r\n"));
