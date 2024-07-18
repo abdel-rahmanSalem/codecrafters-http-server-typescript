@@ -8,10 +8,19 @@ const server = net.createServer((socket) => {
   socket.on("data", (data) => {
     const request = data.toString();
     const requestLine = request.split("\r\n")[0];
-    const url = requestLine.split(" ")[1];
+    const [method, url] = requestLine.split(" ");
 
-    if (url === "/") socket.write(Buffer.from("HTTP/1.1 200 OK\r\n\r\n"));
-    else socket.write(Buffer.from("HTTP/1.1 404 Not Found\r\n\r\n"));
+    if (method === "GET") {
+      if (url === "/") socket.write(Buffer.from("HTTP/1.1 200 OK\r\n\r\n"));
+      else if (url.startsWith("/echo/") && !url.endsWith("/echo/")) {
+        const query = url.split("/")[2];
+        socket.write(
+          Buffer.from(
+            `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${query.length}\r\n\r\n${query}`
+          )
+        );
+      } else socket.write(Buffer.from("HTTP/1.1 404 Not Found\r\n\r\n"));
+    }
   });
 
   socket.on("close", () => {
