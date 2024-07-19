@@ -10,7 +10,8 @@ console.log("Logs from your program will appear here!");
 const server = net.createServer((socket) => {
   socket.on("data", (data) => {
     const request = data.toString();
-    const requestLines = request.split("\r\n");
+    const [headers, requestBody] = request.split("\r\n\r\n");
+    const requestLines = headers.split("\r\n");
     const requestLine = requestLines[0];
     const [method, url] = requestLine.split(" ");
 
@@ -18,30 +19,30 @@ const server = net.createServer((socket) => {
       line.startsWith("User-Agent:")
     );
 
-    if (method === "GET") {
-      if (url === "/") socket.write(Buffer.from("HTTP/1.1 200 OK\r\n\r\n"));
-      else if (url.startsWith("/echo/") && !url.endsWith("/echo/")) {
-        const query = url.split("/")[2];
-        socket.write(
-          Buffer.from(
-            `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${query.length}\r\n\r\n${query}`
-          )
-        );
-      } else if (url === "/user-agent" && userAgentHeader) {
-        const userAgent = userAgentHeader.split(": ")[1];
-        socket.write(
-          Buffer.from(
-            `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${userAgent.length}\r\n\r\n${userAgent}`
-          )
-        );
-      } else if (
-        url.startsWith("/files/") &&
-        !url.endsWith("/files/") &&
-        args[0] === "--directory"
-      ) {
-        const dir = args[1];
-        const file = url.split("/")[2];
-        const filePath = dir + file;
+    if (url === "/") socket.write(Buffer.from("HTTP/1.1 200 OK\r\n\r\n"));
+    else if (url.startsWith("/echo/") && !url.endsWith("/echo/")) {
+      const query = url.split("/")[2];
+      socket.write(
+        Buffer.from(
+          `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${query.length}\r\n\r\n${query}`
+        )
+      );
+    } else if (url === "/user-agent" && userAgentHeader) {
+      const userAgent = userAgentHeader.split(": ")[1];
+      socket.write(
+        Buffer.from(
+          `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${userAgent.length}\r\n\r\n${userAgent}`
+        )
+      );
+    } else if (
+      url.startsWith("/files/") &&
+      !url.endsWith("/files/") &&
+      args[0] === "--directory"
+    ) {
+      const dir = args[1];
+      const file = url.split("/")[2];
+      const filePath = dir + file;
+      if (method === "GET") {
         fs.readFile(filePath, "utf8", (err, data) => {
           if (err) socket.write(Buffer.from("HTTP/1.1 404 Not Found\r\n\r\n"));
           else {
@@ -52,8 +53,13 @@ const server = net.createServer((socket) => {
             );
           }
         });
-      } else socket.write(Buffer.from("HTTP/1.1 404 Not Found\r\n\r\n"));
-    }
+      }
+      if (method === "POST") {
+        fs.writeFile(filePath, requestBody, "utf-8", (err) => {
+          if (!err) socket.write(Buffer.from("HTTP/1.1 201 Created\r\n\r\n"));
+        });
+      }
+    } else socket.write(Buffer.from("HTTP/1.1 404 Not Found\r\n\r\n"));
   });
 
   socket.on("close", () => {
