@@ -1,5 +1,6 @@
 import * as net from "net";
 import * as fs from "fs";
+import * as zlib from "zlib";
 
 const args = process.argv.slice(2);
 
@@ -27,8 +28,9 @@ const server = net.createServer((socket) => {
         .split(", ");
       clientCompressionSchemes?.forEach((compressionScheme) => {
         if (compressionScheme === "gzip") {
+          const compressedQuery = zlib.gzipSync(Buffer.from(query, "utf8"));
           socket.write(
-            `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${query.length}\r\nContent-Encoding: gzip\r\n\r\n${query}`
+            `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${compressedQuery.length}\r\nContent-Encoding: gzip\r\n\r\n${compressedQuery}`
           );
         }
       });
