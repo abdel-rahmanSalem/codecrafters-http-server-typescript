@@ -24,6 +24,7 @@ const server = net.createServer((socket) => {
       console.log(url);
       console.log(query);
       const aceptEncoding = acceptEncodingHeader?.split(": ")[1];
+      console.log(query);
       socket.write(
         `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${
           query.length
