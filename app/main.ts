@@ -28,8 +28,8 @@ const server = net.createServer((socket) => {
       socket.write(
         `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${
           query.length
-        }\r\n${
-          aceptEncoding === "gzip" ? "Content-Encoding: gzip" : ""
+        }${
+          aceptEncoding === "gzip" ? "\r\nContent-Encoding: gzip" : ""
         }\r\n\r\n${query}`
       );
     } else if (url === "/user-agent" && userAgentHeader) {
