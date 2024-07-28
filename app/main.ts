@@ -21,16 +21,19 @@ const server = net.createServer((socket) => {
     if (url === "/") socket.write(Buffer.from("HTTP/1.1 200 OK\r\n\r\n"));
     else if (url.startsWith("/echo/") && !url.endsWith("/echo/")) {
       const query = url.split("/")[2];
-      console.log(url);
-      console.log(query);
-      const aceptEncoding = acceptEncodingHeader?.split(": ")[1];
-      console.log(query);
+
+      const clientCompressionSchemes = acceptEncodingHeader
+        ?.split(": ")[1]
+        .split(", ");
+      clientCompressionSchemes?.forEach((compressionScheme) => {
+        if (compressionScheme === "gzip") {
+          socket.write(
+            `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${query.length}\r\nContent-Encoding: gzip\r\n\r\n${query}`
+          );
+        }
+      });
       socket.write(
-        `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${
-          query.length
-        }${
-          aceptEncoding === "gzip" ? "\r\nContent-Encoding: gzip" : ""
-        }\r\n\r\n${query}`
+        `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${query.length}\r\n\r\n${query}`
       );
     } else if (url === "/user-agent" && userAgentHeader) {
       const userAgent = userAgentHeader.split(": ")[1];
