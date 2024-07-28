@@ -30,7 +30,9 @@ const server = net.createServer((socket) => {
         if (compressionScheme === "gzip") {
           const compressedQuery = zlib.gzipSync(query);
           socket.write(
-            `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${compressedQuery.length}\r\nContent-Encoding: gzip\r\n\r\n${compressedQuery}`
+            Buffer.from(
+              `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${compressedQuery.length}\r\nContent-Encoding: gzip\r\n\r\n${compressedQuery}`
+            )
           );
         }
       });
