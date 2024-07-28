@@ -21,6 +21,8 @@ const server = net.createServer((socket) => {
     if (url === "/") socket.write(Buffer.from("HTTP/1.1 200 OK\r\n\r\n"));
     else if (url.startsWith("/echo/") && !url.endsWith("/echo/")) {
       const query = url.split("/")[2];
+      console.log(url);
+      console.log(query);
       const aceptEncoding = acceptEncodingHeader?.split(": ")[1];
       socket.write(
         Buffer.from(
