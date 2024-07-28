@@ -25,13 +25,11 @@ const server = net.createServer((socket) => {
       console.log(query);
       const aceptEncoding = acceptEncodingHeader?.split(": ")[1];
       socket.write(
-        Buffer.from(
-          `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${
-            query.length
-          }\r\n${
-            aceptEncoding === "gzip" ? "Content-Encoding: gzip" : ""
-          }\r\n\r\n${query}`
-        )
+        `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${
+          query.length
+        }\r\n${
+          aceptEncoding === "gzip" ? "Content-Encoding: gzip" : ""
+        }\r\n\r\n${query}`
       );
     } else if (url === "/user-agent" && userAgentHeader) {
       const userAgent = userAgentHeader.split(": ")[1];
