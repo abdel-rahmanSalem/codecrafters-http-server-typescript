@@ -1,6 +1,7 @@
 import * as net from "net";
 import * as fs from "fs";
-
+import { Gzip } from "zlib";
+const { gzip } = require("node-gzip");
 const args = process.argv.slice(2);
 
 const server = net.createServer((socket) => {
@@ -25,13 +26,17 @@ const server = net.createServer((socket) => {
       const clientCompressionSchemes = acceptEncodingHeader
         ?.split(": ")[1]
         .split(", ");
+
       clientCompressionSchemes?.forEach((compressionScheme) => {
         if (compressionScheme === "gzip") {
-          socket.write(
-            `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${query.length}\r\nContent-Encoding: gzip\r\n\r\n${query}`
-          );
+          gzip(query).then((comp: Gzip) => {
+            socket.write(
+              `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${query.length}\r\nContent-Encoding: gzip\r\n\r\n${comp}`
+            );
+          });
         }
       });
+
       socket.write(
         `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${query.length}\r\n\r\n${query}`
       );
