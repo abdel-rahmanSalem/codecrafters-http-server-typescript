@@ -31,8 +31,9 @@ const server = net.createServer((socket) => {
           const bufferedQuery = Buffer.from(query, "utf-8");
           const compressedQuery = zlib.gzipSync(bufferedQuery);
           socket.write(
-            `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${compressedQuery.length}\r\nContent-Encoding: gzip\r\n\r\n${compressedQuery}`
+            `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Encoding: gzip\r\nContent-Length: ${compressedQuery.length}\r\n\r\n`
           );
+          socket.write(compressedQuery);
         }
       });
       socket.write(
